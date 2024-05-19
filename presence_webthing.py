@@ -69,14 +69,14 @@ class PresenceThing(Thing):
         self.last_time_presence.notify_of_external_update(self.presence.last_time_presence.strftime("%Y-%m-%dT%H:%M"))
 
 
-def run_server(description: str, port: int, name: str, name_address_map: Dict[str, str]):
+def run_server(description: str, port: int, name_address_map: Dict[str, str]):
     if len(name_address_map) < 2:
-        presences = [IpPresence(name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
+        presences = [IpPresence("presence_" + dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
     else:
-        presences = [IpPresence(name + "_" + dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
-        presences = [Presences(name + "_all", presences)] + presences
+        presences = [IpPresence("presence_" + dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
+        presences = [Presences("presence_all", presences)] + presences
     shutters_tings = [PresenceThing(description, presence) for presence in presences]
-    server = WebThingServer(MultipleThings(shutters_tings, name), port=port, disable_host_validation=True)
+    server = WebThingServer(MultipleThings(shutters_tings, "presence"), port=port, disable_host_validation=True)
     try:
         logging.info('starting the server http://localhost:' + str(port))
         [presence.start() for presence in presences]
@@ -101,4 +101,4 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(name)-20s: %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger('tornado.access').setLevel(logging.ERROR)
     logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-    run_server("description", int(sys.argv[1]), sys.argv[2], parse_devices(sys.argv[3]))
+    run_server("description", int(sys.argv[1]), parse_devices(sys.argv[2]))
