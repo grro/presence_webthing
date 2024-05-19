@@ -57,8 +57,11 @@ class IpPresence(Presence):
         return self.__last_time_presence
 
     def __check(self):
+        old_presence = self.is_presence
         if self.ping() > 0:
             self.__last_time_presence = datetime.utcnow()
+        if self.is_presence != old_presence:
+            logging.info((self.name + " is presence now") if self.is_presence else (self.name + " is absent now"))
         self._notify_listeners()
 
     def ping(self, count: int = 10):
