@@ -4,7 +4,7 @@ import tornado.ioloop
 from typing import Dict
 from webthing import (MultipleThings, Property, Thing, Value, WebThingServer)
 from presence import Presence, IpPresence, Presences
-
+from redzoo.math.display import duration
 
 
 
@@ -52,12 +52,24 @@ class PresenceThing(Thing):
         self.last_time_presence = Value(presence.last_time_presence.strftime("%Y-%m-%dT%H:%M"))
         self.add_property(
             Property(self,
-                     'last_time_presence',
+                     'last_time_presence_utc',
                      self.last_time_presence,
                      metadata={
-                         'title': 'last_time_presence',
+                         'title': 'last_time_presence_utc',
                          "type": "string",
-                         'description': 'the last time presence ISO8601 string',
+                         'description': 'the last time presence ISO8601 string (UTC)',
+                         'readOnly': True,
+                     }))
+
+        self.elapsed_since_last_seen = Value(duration(presence.age_sec, 1))
+        self.add_property(
+            Property(self,
+                     'elapsed_since_last_seen',
+                     self.elapsed_since_last_seen,
+                     metadata={
+                         'title': 'elapsed_since_last_seen',
+                         "type": "string",
+                         'description': 'elapsed time since last seen',
                          'readOnly': True,
                      }))
 
@@ -67,6 +79,7 @@ class PresenceThing(Thing):
 
     def _on_value_changed(self):
         self.last_time_presence.notify_of_external_update(self.presence.last_time_presence.strftime("%Y-%m-%dT%H:%M"))
+        self.elapsed_since_last_seen.notify_of_external_update(duration(self.presence.age_sec, 1))
 
 
 def run_server(description: str, port: int, name_address_map: Dict[str, str]):

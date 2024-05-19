@@ -23,6 +23,10 @@ class Presence(ABC):
     def last_time_presence(self) -> datetime:
         pass
 
+    @property
+    def age_sec(self) -> int:
+        return int((datetime.utcnow() - self.last_time_presence).total_seconds())
+
     def _notify_listeners(self):
         [listener() for listener in self.__listeners]
 
@@ -49,7 +53,7 @@ class IpPresence(Presence):
 
     def __check(self):
         if self.ping() > 0:
-            self.__last_time_presence = datetime.now()
+            self.__last_time_presence = datetime.utcnow()
             self._notify_listeners()
 
     def ping(self, count: int = 10):
