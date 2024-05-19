@@ -84,10 +84,10 @@ class PresenceThing(Thing):
 
 def run_server(description: str, port: int, name_address_map: Dict[str, str]):
     if len(name_address_map) < 2:
-        presences = [IpPresence("presence_" + dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
+        presences = [IpPresence(dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
     else:
-        presences = [IpPresence("presence_" + dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
-        presences = [Presences("presence_all", presences)] + presences
+        presences = [IpPresence(dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
+        presences = [Presences("all", presences)] + presences
     shutters_tings = [PresenceThing(description, presence) for presence in presences]
     server = WebThingServer(MultipleThings(shutters_tings, "presence"), port=port, disable_host_validation=True)
     try:
