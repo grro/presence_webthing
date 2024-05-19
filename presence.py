@@ -87,7 +87,7 @@ class Presences(Presence):
         self.__is_running = True
         self.__presences = presences
         [presence.add_listener(self.__notify) for presence in presences]
-        super().__init__(name, "all")
+        super().__init__(name, "")
 
     @property
     def last_time_presence(self) -> datetime:
