@@ -10,9 +10,10 @@ from scapy.all import IP, ICMP, sr
 
 class Presence(ABC):
 
-    def __init__(self, name: str, addr: str):
+    def __init__(self, name: str, addr: str, timeout_sec: int):
         self.name = name
         self.addr = addr
+        self.timeout_sec = timeout_sec
         self.__listeners = set()
 
     def add_listener(self, listener):
@@ -22,6 +23,10 @@ class Presence(ABC):
     @abstractmethod
     def last_time_presence(self) -> datetime:
         pass
+
+    @property
+    def is_presence(self) -> bool:
+        return (datetime.utcnow() - self.last_time_presence).total_seconds() < self.timeout_sec
 
     @property
     def age_sec(self) -> int:
@@ -40,11 +45,11 @@ class Presence(ABC):
 
 class IpPresence(Presence):
 
-    def __init__(self, name: str, addr: str):
+    def __init__(self, name: str, addr: str, timeout_sec: int):
         self.__is_running = True
         self.addr = addr
         self.__last_time_presence = datetime.now() - timedelta(days=365)
-        super().__init__(name, addr)
+        super().__init__(name, addr, timeout_sec)
         self.__check()
 
     @property
@@ -83,11 +88,11 @@ class IpPresence(Presence):
 
 class Presences(Presence):
 
-    def __init__(self, name: str, presences: List[Presence]):
+    def __init__(self, name: str, presences: List[Presence], timeout_sec: int):
         self.__is_running = True
         self.__presences = presences
         [presence.add_listener(self.__notify) for presence in presences]
-        super().__init__(name, "")
+        super().__init__(name, "", timeout_sec)
 
     @property
     def last_time_presence(self) -> datetime:

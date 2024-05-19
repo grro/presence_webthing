@@ -49,6 +49,18 @@ class PresenceThing(Thing):
                          'readOnly': True,
                      }))
 
+        self.is_presence = Value(presence.is_presence)
+        self.add_property(
+            Property(self,
+                     'is_presence',
+                     self.is_presence,
+                     metadata={
+                         'title': 'is_presence',
+                         "type": "boolean",
+                         'description': 'true, if presence',
+                         'readOnly': True,
+                     }))
+
         self.last_time_presence = Value(presence.last_time_presence.strftime("%Y-%m-%dT%H:%M"))
         self.add_property(
             Property(self,
@@ -80,14 +92,15 @@ class PresenceThing(Thing):
     def _on_value_changed(self):
         self.last_time_presence.notify_of_external_update(self.presence.last_time_presence.strftime("%Y-%m-%dT%H:%M"))
         self.elapsed_since_last_seen.notify_of_external_update(duration(self.presence.age_sec, 1))
+        self.is_presence.notify_of_external_update(self.presence.is_presence)
 
 
-def run_server(description: str, port: int, name_address_map: Dict[str, str]):
+def run_server(description: str, port: int, name_address_map: Dict[str, str], timeout_sec :int):
     if len(name_address_map) < 2:
-        presences = [IpPresence(dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
+        presences = [IpPresence(dev_name, name_address_map[dev_name], timeout_sec) for dev_name in name_address_map.keys()]
     else:
-        presences = [IpPresence(dev_name, name_address_map[dev_name]) for dev_name in name_address_map.keys()]
-        presences = [Presences("all", presences)] + presences
+        presences = [IpPresence(dev_name, name_address_map[dev_name], timeout_sec) for dev_name in name_address_map.keys()]
+        presences = [Presences("all", presences, timeout_sec)] + presences
     shutters_tings = [PresenceThing(description, presence) for presence in presences]
     server = WebThingServer(MultipleThings(shutters_tings, "presence"), port=port, disable_host_validation=True)
     try:
@@ -114,4 +127,4 @@ if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s %(name)-20s: %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
     logging.getLogger('tornado.access').setLevel(logging.ERROR)
     logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-    run_server("description", int(sys.argv[1]), parse_devices(sys.argv[2]))
+    run_server("description", int(sys.argv[1]), parse_devices(sys.argv[2]), int(sys.argv[3]))
