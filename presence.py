@@ -64,11 +64,11 @@ class IpPresence(Presence):
             logging.info((self.name + " is presence now") if self.is_presence else (self.name + " is absent now"))
         self._notify_listeners()
 
-    def ping(self, count: int = 10):
+    def ping(self, count: int = 5):
         successful_pings = 0
         for i in range(count):
             ping_packet = IP(dst=self.addr) / ICMP()
-            response, _ = sr(ping_packet, timeout=2, verbose=False)
+            response, _ = sr(ping_packet, timeout=5, verbose=False)
             if response:
                 successful_pings += 1
         return successful_pings
@@ -83,7 +83,7 @@ class IpPresence(Presence):
         while self.__is_running:
             try:
                 self.__check()
-                sleep(6.03)
+                sleep(9.03)
             except Exception as e:
                 logging.warning("error occurred on check " + str(e))
                 sleep(3)
