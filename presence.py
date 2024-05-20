@@ -64,7 +64,7 @@ class IpPresence(Presence):
             logging.info((self.name + " is presence now") if self.is_presence else (self.name + " is absent now"))
         self._notify_listeners()
 
-    def ping(self, count: int = 5):
+    def ping(self, count: int = 10):
         successful_pings = 0
         for i in range(count):
             ping_packet = IP(dst=self.addr) / ICMP()
