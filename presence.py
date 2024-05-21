@@ -14,6 +14,7 @@ class Presence(ABC):
         self.name = name
         self.addr = addr
         self.timeout_sec = timeout_sec
+        self.__reported_present = None
         self.__listeners = set()
 
     def add_listener(self, listener):
@@ -34,6 +35,9 @@ class Presence(ABC):
 
     def _notify_listeners(self):
         [listener() for listener in self.__listeners]
+        if self.is_presence != self.__reported_present:
+            self.__reported_present = self.is_presence
+            logging.info((self.name + " is presence") if self.is_presence else (self.name + " is absent"))
 
     def start(self):
         pass
@@ -50,18 +54,16 @@ class IpPresence(Presence):
         self.addr = addr
         self.__last_time_presence = datetime.now() - timedelta(days=365)
         super().__init__(name, addr, timeout_sec)
-        self.__check(force_info=True)
+        self.__check()
 
     @property
     def last_time_presence(self) -> datetime:
         return self.__last_time_presence
 
-    def __check(self, force_info: bool = False):
+    def __check(self):
         old_presence = self.is_presence
         if self.ping() > 0:
             self.__last_time_presence = datetime.utcnow()
-        if force_info or (self.is_presence != old_presence):
-            logging.info((self.name + " is presence") if self.is_presence else (self.name + " is absent"))
         self._notify_listeners()
 
     def ping(self, count: int = 5):
