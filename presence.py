@@ -50,17 +50,17 @@ class IpPresence(Presence):
         self.addr = addr
         self.__last_time_presence = datetime.now() - timedelta(days=365)
         super().__init__(name, addr, timeout_sec)
-        self.__check()
+        self.__check(force_info=True)
 
     @property
     def last_time_presence(self) -> datetime:
         return self.__last_time_presence
 
-    def __check(self):
+    def __check(self, force_info: bool = False):
         old_presence = self.is_presence
         if self.ping() > 0:
             self.__last_time_presence = datetime.utcnow()
-        if self.is_presence != old_presence:
+        if force_info or (self.is_presence != old_presence):
             logging.info((self.name + " is presence") if self.is_presence else (self.name + " is absent"))
         self._notify_listeners()
 
