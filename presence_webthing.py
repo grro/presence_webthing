@@ -104,7 +104,7 @@ def run_server(description: str, port: int, name_address_map: Dict[str, str], ti
     shutters_tings = [PresenceThing(description, presence) for presence in presences]
     server = WebThingServer(MultipleThings(shutters_tings, "presence"), port=port, disable_host_validation=True)
     try:
-        logging.info('starting the server http://localhost:' + str(port))
+        logging.info('starting the server http://localhost:' + str(port) + " (absent threshold: " + duration(timeout_sec) + ")")
         [presence.start() for presence in presences]
         server.start()
     except KeyboardInterrupt:

@@ -61,7 +61,6 @@ class IpPresence(Presence):
         return self.__last_time_presence
 
     def __check(self):
-        old_presence = self.is_presence
         if self.ping() > 0:
             self.__last_time_presence = datetime.utcnow()
         self._notify_listeners()
@@ -85,7 +84,7 @@ class IpPresence(Presence):
         while self.__is_running:
             try:
                 self.__check()
-                sleep(11.03)
+                sleep(9)
             except Exception as e:
                 logging.warning("error occurred on check " + str(e))
                 sleep(3)
