@@ -84,7 +84,7 @@ class IpPresence(Presence):
         while self.__is_running:
             try:
                 self.__check()
-                sleep(9)
+                sleep(3)
             except Exception as e:
                 logging.warning("error occurred on check " + str(e))
                 sleep(3)
