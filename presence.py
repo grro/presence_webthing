@@ -61,11 +61,13 @@ class IpPresence(Presence):
         return self.__last_time_presence
 
     def __check(self):
-        if self.ping() > 0:
+        pings = self.ping()
+        if pings> 0:
             self.__last_time_presence = datetime.utcnow()
+            logging.info(self.name + " present pings " + str(pings))
         self._notify_listeners()
 
-    def ping(self, count: int = 5):
+    def ping(self, count: int = 5) -> int:
         successful_pings = 0
         for i in range(count):
             ping_packet = IP(dst=self.addr) / ICMP()
