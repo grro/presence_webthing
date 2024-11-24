@@ -86,7 +86,10 @@ class IpPresence(Presence):
         while self.__is_running:
             try:
                 self.__check()
-                sleep(3)
+                if (datetime.now() - self.__last_time_presence).total_seconds() > 60:
+                    sleep(5)
+                else:
+                    sleep(20)
             except Exception as e:
                 logging.warning("error occurred on check " + str(e))
                 sleep(3)
