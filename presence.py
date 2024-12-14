@@ -64,7 +64,7 @@ class IpPresence(Presence):
         pings = self.ping()
         if pings> 0:
             self.__last_time_presence = datetime.utcnow()
-            logging.debug(self.name + " present pings " + str(pings))
+            #logging.debug(self.name + " present pings " + str(pings))
         self._notify_listeners()
 
     def ping(self, count: int = 5) -> int:
@@ -102,6 +102,7 @@ class Presences(Presence):
         self.__presences = presences
         [presence.add_listener(self.__notify) for presence in presences]
         super().__init__(name, "", timeout_sec)
+        Thread(target=self.__report_loop, daemon=True).start()
 
     @property
     def last_time_presence(self) -> datetime:
@@ -113,3 +114,12 @@ class Presences(Presence):
 
     def __notify(self):
         self._notify_listeners()
+
+    def __report_loop(self):
+        while self.__is_running:
+            try:
+                for presences in self.__presences:
+                    logging.info((presences.name + " is presence") if presences.is_presence else (presences.name + " is absent"))
+            except Exception as e:
+                logging.warning("error occurred on reporting " + str(e))
+            sleep(60*60)
