@@ -37,7 +37,7 @@ class Presence(ABC):
         [listener() for listener in self.__listeners]
         if self.is_presence != self.__reported_present:
             self.__reported_present = self.is_presence
-            logging.info((self.name + " is presence") if self.is_presence else (self.name + " is absent"))
+            logging.info((self.name + " is presence") if self.is_presence else (self.name + " is absent (" + str(self.addr) + ")"))
 
     def start(self):
         pass
@@ -123,3 +123,5 @@ class Presences(Presence):
             except Exception as e:
                 logging.warning("error occurred on reporting " + str(e))
             sleep(60*60)
+
+
