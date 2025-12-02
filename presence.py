@@ -27,11 +27,11 @@ class Presence(ABC):
 
     @property
     def is_presence(self) -> bool:
-        return (datetime.now(UTC) - self.last_time_presence).total_seconds() < self.timeout_sec
+        return (datetime.utcnow() - self.last_time_presence).total_seconds() < self.timeout_sec
 
     @property
     def age_sec(self) -> int:
-        return int((datetime.now(UTC) - self.last_time_presence).total_seconds())
+        return int((datetime.utcnow() - self.last_time_presence).total_seconds())
 
     def _notify_listeners(self):
         [listener() for listener in self.__listeners]
@@ -63,7 +63,7 @@ class IpPresence(Presence):
     def __check(self):
         pings = self.ping()
         if pings> 0:
-            self.__last_time_presence = datetime.now(UTC)
+            self.__last_time_presence = datetime.utcnow()
             #logging.debug(self.name + " present pings " + str(pings))
         self._notify_listeners()
 
@@ -91,7 +91,7 @@ class IpPresence(Presence):
                 else:
                     sleep(20)
             except Exception as e:
-                logging.warning("error occurred on check " + str(e))
+                logging.warning(e, exc_info=True)
                 sleep(3)
 
 
