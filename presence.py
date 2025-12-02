@@ -1,10 +1,10 @@
 import logging
 from threading import Thread
 from time import sleep
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from abc import ABC, abstractmethod
 from typing import List
-from scapy.all import IP, ICMP, sr
+from scapy.all import IP, ICMP, sr1
 
 
 
@@ -27,11 +27,11 @@ class Presence(ABC):
 
     @property
     def is_presence(self) -> bool:
-        return (datetime.utcnow() - self.last_time_presence).total_seconds() < self.timeout_sec
+        return (datetime.now(UTC) - self.last_time_presence).total_seconds() < self.timeout_sec
 
     @property
     def age_sec(self) -> int:
-        return int((datetime.utcnow() - self.last_time_presence).total_seconds())
+        return int((datetime.now(UTC) - self.last_time_presence).total_seconds())
 
     def _notify_listeners(self):
         [listener() for listener in self.__listeners]
@@ -63,7 +63,7 @@ class IpPresence(Presence):
     def __check(self):
         pings = self.ping()
         if pings> 0:
-            self.__last_time_presence = datetime.utcnow()
+            self.__last_time_presence = datetime.now(UTC)
             #logging.debug(self.name + " present pings " + str(pings))
         self._notify_listeners()
 
@@ -71,7 +71,7 @@ class IpPresence(Presence):
         successful_pings = 0
         for i in range(count):
             ping_packet = IP(dst=self.addr) / ICMP()
-            response, _ = sr(ping_packet, timeout=3, verbose=False)
+            response, _ = sr1(ping_packet, timeout=3, verbose=False)
             if response:
                 successful_pings += 1
         return successful_pings
@@ -123,5 +123,4 @@ class Presences(Presence):
             except Exception as e:
                 logging.warning("error occurred on reporting " + str(e))
             sleep(60*60)
-
 
