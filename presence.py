@@ -71,7 +71,7 @@ class IpPresence(Presence):
         successful_pings = 0
         for i in range(count):
             ping_packet = IP(dst=self.addr) / ICMP()
-            response, _ = sr1(ping_packet, timeout=3, verbose=False)
+            response = sr1(ping_packet, timeout=3, verbose=False)
             if response:
                 successful_pings += 1
         return successful_pings
