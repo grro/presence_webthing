@@ -18,7 +18,7 @@ class SimpleRequestHandler(BaseHTTPRequestHandler):
         presence_name = parsed_url.path.lstrip("/")
         presence = next((s for s in self.server.presences if s.name == presence_name), None)
         if presence:
-            self._send_json(200, {'is_presence': presence.is_presence()})
+            self._send_json(200, {'is_presence': presence.is_presence})
         else:
             html = "<h1>available presences</h1><ul>"
             for s in self.server.presences:
