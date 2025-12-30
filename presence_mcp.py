@@ -3,7 +3,7 @@ from mcp_server import MCPServer
 from presence import Presence
 
 
-class PresenceCPServer(MCPServer):
+class PresenceMCPServer(MCPServer):
 
     def __init__(self, name: str, port: int, presences: List[Presence]):
         super().__init__(name, port)
