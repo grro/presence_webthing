@@ -14,11 +14,12 @@ class SimpleRequestHandler(BaseHTTPRequestHandler):
         pass
 
     def do_GET(self):
+        presences: List[Presence] = self.server.presences
         parsed_url = urlparse(self.path)
         presence_name = parsed_url.path.lstrip("/")
-        presence = next((s for s in self.server.presences if s.name == presence_name), None)
+        presence = next((s for s in presences if s.name == presence_name), None)
         if presence:
-            self._send_json(200, {'is_presence': presence.is_presence})
+            self._send_json(200, {'is_presence': presence.is_presence, 'last_seen': presence.last_time_presence.strftime("%Y-%m-%dT%H:%M")})
         else:
             html = "<h1>available presences</h1><ul>"
             for s in self.server.presences:
