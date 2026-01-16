@@ -9,23 +9,19 @@ class PresenceMCPServer(MCPServer):
         super().__init__(name, port)
         self.presences = presences
 
+        @self.mcp.tool(name="list_presences", description="Returns a comma-separated list of all available presence sensors. The presence with the extension 'all' is the group of all presences.")
+        def list_presences() -> str:
+            return ", ".join([p.name for p in self.presences])
 
-        @self.mcp.resource("presence://list/names")
-        def list_awning_names() -> str:
-            """Returns a comma-separated list of all available presences. The presence with the extension all is the group of all presences. """
-            return ", ".join([awning.name for awning in self.presences])
-
-
-        @self.mcp.resource("presences://{name}/is_presence")
-        def is_presence(name: str) -> int:
-            """
-            Returns the current position of a specific awning.
-            0 = fully open, 100 = fully closed.
-            """
-            for presence  in self.presences:
+        @self.mcp.tool(name="get_presence_status", description="Returns the current status of a specific presence sensor. 1 = presence detected, 0 = no presence.")
+        def get_presence_status(name: str) -> int:
+            for presence in self.presences:
                 if presence.name == name:
                     return presence.is_presence
+
             raise ValueError(f"presence '{name}' not found")
+
+
 
 # npx @modelcontextprotocol/inspector
 
