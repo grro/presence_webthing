@@ -2,4 +2,4 @@ requests>=2.32.5
 redzoo>=0.3.7
 webthing>=0.15.0
 scapy>=2.5.0
-mcp-baselib>=0.0.5
+mcp-baselib>=0.0.6
