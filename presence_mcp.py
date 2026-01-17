@@ -19,7 +19,7 @@ class PresenceMCPServer(MCPServer):
             return ", ".join([p.name for p in self.presences])
 
         @self.mcp.tool(name="get_presence_status",
-                       description="Checks if a specific person/device is currently present. Returns '1' for present (at home) and '0' for away.")
+                       description="Checks if a specific person/device is currently present. Returns '1' for present (at home) and '0' for absence.")
         def get_presence_status(name: str) -> str:
             """
             Returns the current status of a specific person.
