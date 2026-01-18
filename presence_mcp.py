@@ -1,4 +1,5 @@
 from typing import List
+from datetime import datetime, timezone
 from mcplib.server import MCPServer
 from presence import Presence
 
@@ -8,26 +9,24 @@ class PresenceMCPServer(MCPServer):
         super().__init__(name, port)
         self.presences = presences
 
-        @self.mcp.tool(name="list_tracked_entities",
-                       description="Returns a list of all tracked persons or devices. The entity 'all' represents the group state.")
-        def list_tracked_entities() -> str:
-            """Provides the names of all available presence sensors."""
-            return ", ".join([p.name for p in self.presences])
 
-        @self.mcp.tool(name="get_presence_info",
-                       description="Returns the current presence status and the last seen timestamp for a specific person.")
-        def get_presence_info(name: str) -> str:
-            """
-            Args:
-                name: The name of the person or device to check.
-            """
-            for presence in self.presences:
-                if presence.name == name:
-                    status = "Present (1)" if presence.is_presence else "Away (0)"
-                    last_seen = (presence.last_time_presence.strftime("%Y-%m-%dT%H:%M")
-                                 if presence.last_time_presence else "Never")
+        @self.mcp.tool(name="get_presence_overview",
+                       description="Provides status, full ISO timestamp, and duration for all tracked entities.")
+        def get_presence_overview() -> str:
+            """Detailed report including full date and elapsed time."""
+            if not self.presences:
+                return "No entities tracked."
 
-                    return f"Entity: {name} | Status: {status} | Last Seen: {last_seen} UTC"
+            lines = []
+            for p in self.presences:
+                status = "PRESENT" if p.is_presence else "AWAY"
+                duration = self._get_duration_str(p.last_time_presence)
 
-            available = ", ".join([p.name for p in self.presences])
-            return f"Error: '{name}' not found. Available: {available}"
+                # Full ISO 8601 timestamp: YYYY-MM-DD HH:MM
+                timestamp = (p.last_time_presence.strftime("%Y-%m-%dT%H:%M")
+                             if p.last_time_presence else "Never")
+
+                # Format: - Name: STATUS (since 2h 15m, last seen: 2024-05-20 14:30 UTC)
+                lines.append(f"- {p.name}: {status} (since {duration}, last seen: {timestamp} UTC)")
+
+            return "Current Home Presence Report:\n" + "\n".join(lines)
