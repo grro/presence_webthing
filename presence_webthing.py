@@ -101,7 +101,7 @@ def run_server(description: str, port: int, name_address_map: Dict[str, str], ti
         presences = [IpPresence(dev_name, name_address_map[dev_name], timeout_sec) for dev_name in name_address_map.keys()]
     else:
         presences = [IpPresence(dev_name, name_address_map[dev_name], timeout_sec) for dev_name in name_address_map.keys()]
-        presences = [Presences("all", presences, timeout_sec)] + presences
+        presences = [Presences("any", presences, timeout_sec)] + presences
     shutters_tings = [PresenceThing(description, presence) for presence in presences]
     web_server = PresenceWebServer(presences, port=port+1)
     mcp_server = PresenceMCPServer("presence", port+2, presences)
