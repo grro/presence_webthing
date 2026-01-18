@@ -8,17 +8,27 @@ from presence import Presence
 def _get_duration_str(last_change: datetime) -> str:
     """
     Calculates a human-readable duration string since the last state change.
-    Example outputs: '45s', '12m', '3h 15m', '2d 4h'
+    Fixes TypeError by ensuring both datetimes are offset-aware.
     """
     if not last_change:
         return "unknown duration"
 
-    # Compare using UTC to avoid timezone offset errors
+    # 1. Get current time in UTC (offset-aware)
     now = datetime.now(timezone.utc)
+
+    # 2. Check if last_change has timezone info.
+    # If not, assume it is UTC and make it aware.
+    if last_change.tzinfo is None:
+        last_change = last_change.replace(tzinfo=timezone.utc)
+    # If it has a different timezone, convert it to UTC for a safe comparison
+    else:
+        last_change = last_change.astimezone(timezone.utc)
+
+    # 3. Now subtraction is safe
     diff = now - last_change
 
     seconds = int(diff.total_seconds())
-    if seconds < 0: # Handle slight clock drifts
+    if seconds < 0:
         return "just now"
     if seconds < 60:
         return f"{seconds}s"
