@@ -1,5 +1,4 @@
 from typing import List
-from datetime import datetime, timezone
 from mcplib.server import MCPServer
 from presence import Presence
 
