@@ -87,7 +87,7 @@ class PresenceThing(Thing):
                      }))
 
 
-    def on_value_changed(self):
+    def on_value_changed(self, name: str):
         self.ioloop.add_callback(self._on_value_changed)
 
     def _on_value_changed(self):

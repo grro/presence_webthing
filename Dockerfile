@@ -2,7 +2,7 @@ FROM python:3-alpine
 
 ENV port 8343
 ENV devices ?
-ENV timout_sec 2*60
+ENV timout_sec 180
 
 RUN cd /etc
 RUN mkdir app

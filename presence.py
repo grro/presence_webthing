@@ -20,6 +20,12 @@ class Presence(ABC):
     def add_listener(self, listener):
         self.__listeners.add(listener)
 
+    def _notify_listeners(self, name: str):
+        [listener(name) for listener in self.__listeners]
+        if self.is_presence != self.__reported_present:
+            self.__reported_present = self.is_presence
+            logging.info((self.name + " (" + str(self.addr) + ") is presence") if self.is_presence else (self.name + " (" + str(self.addr) + ") is absent"))
+
     @property
     @abstractmethod
     def last_time_presence(self) -> datetime:
@@ -32,12 +38,6 @@ class Presence(ABC):
     @property
     def age_sec(self) -> int:
         return int((datetime.utcnow() - self.last_time_presence).total_seconds())
-
-    def _notify_listeners(self):
-        [listener() for listener in self.__listeners]
-        if self.is_presence != self.__reported_present:
-            self.__reported_present = self.is_presence
-            logging.info((self.name + " (" + str(self.addr) + ") is presence") if self.is_presence else (self.name + " (" + str(self.addr) + ") is absent"))
 
     def start(self):
         pass
@@ -65,7 +65,7 @@ class IpPresence(Presence):
         if pings> 0:
             self.__last_time_presence = datetime.utcnow()
             #logging.debug(self.name + " present pings " + str(pings))
-        self._notify_listeners()
+        self._notify_listeners(self.name)
 
     def ping(self, count: int = 5) -> int:
         successful_pings = 0
@@ -112,8 +112,8 @@ class Presences(Presence):
                 last_date_presence = presence.last_time_presence
         return last_date_presence
 
-    def __notify(self):
-        self._notify_listeners()
+    def __notify(self, name: str):
+        self._notify_listeners(self.name)
 
     def __report_loop(self):
         while self.__is_running:
