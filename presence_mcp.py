@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import threading
 from typing import Protocol, cast, List, Dict
 from fastmcp import FastMCP
 from pydantic import AnyUrl, TypeAdapter
@@ -256,11 +257,16 @@ class PresenceMCPServer:
 
     def start(self):
         self.mdns.register_mdns(self.name, self.port)
-        asyncio.set_event_loop(self.loop)
-        try:
-            self.loop.run_until_complete(self.__run())
-        finally:
-            self.loop.close()
+
+        def _run_loop():
+            asyncio.set_event_loop(self.loop)
+            try:
+                self.loop.run_until_complete(self.__run())
+            finally:
+                self.loop.close()
+
+        thread = threading.Thread(target=_run_loop, daemon=True)
+        thread.start()
 
 
     def stop(self):
