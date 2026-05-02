@@ -4,7 +4,8 @@ from typing import Protocol, cast, List, Dict
 from fastmcp import FastMCP
 from pydantic import AnyUrl, TypeAdapter
 from datetime import datetime, timezone
-
+from zeroconf import IPVersion, ServiceInfo, Zeroconf
+import socket
 from presence import Presence
 
 
@@ -52,6 +53,53 @@ def _get_duration_str(last_change: datetime) -> str:
 
 
 
+
+class MDNS:
+
+    def __init__(self):
+        self.registered: Dict[str, ServiceInfo] = dict()
+        self.zc = Zeroconf(ip_version=IPVersion.V4Only)
+        self.service_type = "_mcp._tcp.local."
+        self.hostname = socket.gethostname()
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(("8.8.8.8", 80))
+            self.local_ip = s.getsockname()[0]
+        finally:
+            s.close()
+
+
+    def register_mdns(self, name: str, port: int):
+        try:
+            service_name = f"{name}.{self.service_type}"
+            service_info = ServiceInfo(
+                type_= self.service_type,
+                name=service_name,
+                addresses=[socket.inet_aton(self.local_ip)],
+                port=port,
+                properties={
+                    "version": "1.0",
+                    "path": "/sse",
+                    "server_type": "fastmcp"
+                },
+                server=f"{self.hostname}.local.",
+            )
+
+            logging.info(f"mDNS: Registering {service_name} at {self.local_ip}:{port}")
+            self.zc.register_service(service_info)
+            self.registered[name] = service_info
+        except Exception as e:
+            logging.error(f"mDNS Registration failed: {e}")
+
+    def unregister_mdns(self, name: str):
+        service_info = self.registered.get(name)
+        if service_info is not None:
+            logging.info("mDNS: Unregistering service...")
+            self.zc.unregister_service(service_info)
+            self.zc.close()
+
+
+
 class ResourceUpdateSession(Protocol):
     async def send_resource_updated(self, uri: AnyUrl) -> None:
         ...
@@ -64,6 +112,7 @@ class PresenceMCPServer:
         self.host = host
         self.port = port
 
+        self.mdns = MDNS()
         self.mcp = FastMCP(self.name)
         self.active_sessions: set[ResourceUpdateSession] = set()
         self.low_level_server = self.mcp._mcp_server
@@ -206,7 +255,7 @@ class PresenceMCPServer:
 
 
     def start(self):
-        # self._register_mdns()
+        self.mdns.register_mdns(self.name, self.port)
         asyncio.set_event_loop(self.loop)
         try:
             self.loop.run_until_complete(self.__run())
@@ -215,6 +264,6 @@ class PresenceMCPServer:
 
 
     def stop(self):
-        # self._unregister_mdns()
+        self.mdns.unregister_mdns(self.name)
         self.loop.stop()
         logging.info("MCP Server stopped")
